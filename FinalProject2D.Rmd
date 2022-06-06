@@ -1,0 +1,413 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Introduction 
+
+## Scientific Question: Is the target protein, RNA-dependent RNA polymerase (RdRp) in SARS-CoV-2, structurally similar to the RdRp target proteins in other related viruses? 
+
+
+RNA-dependent RNA polymerase (RdRp) is an important component in virus replication and handles the replication and transcription of the viral RNA in SARS-CoV-2 (Jiang et. al 2021). It plays a critical role in the viral life cycle of SARS-CoV-2. In addition the active site of RdRP, is considered the most conserved and accessible region in SARS-CoV-2 making it a primary target region for the inhibition of viral replication (Aftab et. al 2020). This makes the RdRP target protein a potential antiviral drug target. 
+
+Several studies have been done on the target protein, RdRp, due to its accessibility and potential as therapeutic drug target to end replication of SARS-CoV-2. Researchers and scientists have discovered that statins play a large role in stopping the viral replication and targeting RdRp (Ghosh et. al 2022) 
+
+On the other hand, SARS-CoV-2 created some serious problems a few years ago at the beginning of the pandemic and it still does today due to the amplification of variants. However, SARS-CoV-2 is one of the seven coronaviruses that can be transmitted to humans (Aftab et. al 2020) There is also a large number of coronaviruses ranging from humans to animals.  
+
+
+
+## Scientific Hypothesis: If the RdRp target protein of SARS-CoV-2 is analyzed through multiple sequence alignment and structural bioinformatics, then the RdRp protein sequence of SARS-CoV-2 will be structurally similar to at least 30% of the compared RdRp target proteins of other related viruses.
+
+In this project, I will be using data from the NCBI database for Multiple Sequence Alignment and Phylogenetic Trees. The NCBI database is a public biomedical databases with software tools for analyzing molecular and genomic data, and research. The database can be found here: https://www.ncbi.nlm.nih.gov/. 
+
+I used the protein search on the database to download and create a compressed fasta file of the amino acid sequence for the target protein RdRp. I found the target protein RdRp in SARS-CoV-2 and chose 5 other RdRp protein sequences in other viruses similar to COVID-19 including bat coronavirus and others. These other viruses include Porphyridium Purpureum Toti-Virus, Japanese Plum-Yew deltapartitivirus, Lycopod mitovirus, and Chinese swamp cypress mitovirus.
+
+The multiple sequence alignment was used to identify evolutionary patterns between SARS-CoV-2 and the other viruses listed above. This was analyzed in a phylogenetic tree that can identify common ancestors and similarities between the viruses. 
+
+Furthermore, I will also be using the RCSB PDB database, which is the protein  data bank database. the protein data bank database is a repository for all the information on 3D structures of proteins, nucleic acids, and complex assemblies that helps students and researchers understand aspects in biomedicine. The database can be found here: https://www.rcsb.org
+
+I used this database to perform Structural Bioinformatics and 3D Protein Measurements. Because of R's exceptional functionalities, I did not directly download any files, they were read in with the package 'bio3d' using the read.pdb() function. 
+
+Structural Bioinformatics was used to identify the structure of RdRp target protein through the use of 6NUR from the pdb database. The 3D protein measurements of 6NUR was taken as well as protein measurements from an array of other target proteins of RdRp in other viruses. These viruses are different from the viruses used for Multiple sequence Alignment and Phylogenetic Tree. These protein structures are listed here:
+
+1. 6NUR - SARS-Coronavirus NSP12 bound to NSP7 and NSP8 co-factors
+2. 7B3D - Structure of elongating SARS-CoV-2 RNA-dependent RNA polymerase with AMP at position -4 
+3. 5I62 - Crystal structure of the insertion loop deletion mutant of RdRp of a human picorbirnavirus
+4. 6L4R - Crystal structure of Enterovirus D68 RdRp
+5. 3UQS - Crystal structures of murine norovirus RdRp
+6. 5K5M - Co-Crystal Structure of Dengue Virus Serotype 2 RdRP with Compound 27 
+
+
+### The following project is built around the following research articles below: 
+
+Aftab, S.O., Ghouri, M.Z., Masood, M.U. et al. Analysis of SARS-CoV-2 RNA-dependent RNA polymerase as a potential therapeutic drug target using a computational approach. J Transl Med 18, 275 (2020). https://doi.org/10.1186/s12967-020-02439-0
+
+Ghosh, D., Ghosh Dastidar, D., Roy, K. et al. Computational prediction of the molecular mechanism of statin group of drugs against SARS-CoV-2 pathogenesis. Sci Rep 12, 6241 (2022). https://doi.org/10.1038/s41598-022-09845-y
+
+Jiang, Yi et al. “RNA-dependent RNA polymerase: Structure, mechanism, and drug discovery for COVID-19.” Biochemical and biophysical research communications vol. 538 (2021): 47-53. doi:10.1016/j.bbrc.2020.08.116
+
+
+
+# Package Descriptions 
+
+The following are a list of packages need to be loaded throughout this project:  
+
+1. BioConductor: is a package that provides access to different statistical and graphical methods to analyze data
+2. BioCManager: is a package used to install BioConductor and it helps maintain the packages from BioConductor
+3. BioStrings: is an example of a package from BioConductor that helps manipulate strings and large biological sequences
+4. seqinr: is a package specifically for data analysis and visualization of DNA and Proteins
+4. msa: is a package from BioConductor that comes with multiple sequence alignment algorithms to perform a multiple sequence alignment
+5. Bio3D: is a package for structural bioinformatics that contains utilities to analyze protein sequences and structure. 
+6. MUSCLE: this is a extra package in order to get the full functionalities of bio3d
+7. ape: is a package to analyze phylogenetics and create phylogenetic trees
+
+```{r}
+library(BiocManager)
+BiocManager::install("msa")
+library(Biostrings)
+library(seqinr)
+library(msa)
+```
+
+# Method One: Multiple Sequence Alignment and Phylogenetic Trees
+
+Database: NCBI (Protein)
+
+File Type: RdRp.fasta that consists of 6 protein sequences of RdRp in different viruses. 
+
+
+## Multiple Sequence Alignment
+
+Description of Method: It is a tool that aligns 3 or more sequences in order to study related genes or proteins and identify shared pattern, structures, or functionalities. In this project, I use the NCBI database, to create a fasta file that can compare 6 similar sequences with the target protein RdRP in order to create a phylogenetic tree to analyze the similarities between the protein in different viruses.
+
+
+### CHUNK A
+
+In the following chunk of code, the following packages are loaded that are necessary to complete multiple sequence alignment. 
+
+```{r}
+# Install package BiocManager and msa 
+if (!requireNamespace("BiocManager", quietly=TRUE))
+install.packages("BiocManager")
+BiocManager::install("msa")
+
+library(msa)
+
+# To make sure all functionalities are used correctly 
+
+system.file("tex", "texshade.sty", package="msa")
+
+
+
+```
+
+
+### CHUNK B 
+
+In this following CHUNK of Code, I upload my fasta file and define my local and global variables. The fasta file that is uploaded below contains the RdRP protein sequence of 6 viruses including: SARS-CoV-2, Bat Coronavirus, Porphyridium Purpureum Toti-Virus, Japanese Plum-Yew deltapartitivirus, Lycopod mitovirus, and Chinese swamp cypress mitovirus. 
+
+This fasta file was derived from the NCBI database. I simply searched for RNA-dependent RNA polymerase in the search bar under protein and chose 6 sequences that listed the full amino acid sequence for the RdRp target protein. The database and more information on the sequences can be found here: https://www.ncbi.nlm.nih.gov/protein . 
+
+These were a series of viruses that had the target protein complex RdRp and I wanted to test the similarity between the 6 protein sequences. 
+
+```{r}
+# The variable defined below is an example of a global variable that will be used throughout the multiple sequence alignment code 
+
+RdRp_unaligned <- readAAStringSet("RdRp.fasta")
+
+# Here the global variable is printed
+RdRp_unaligned
+
+# Here is an example of a local variable that is used to load the file and eventually read the length of the file
+
+RdRp_read <- read.fasta(file = "RdRp.fasta")
+
+# The local variable is then printed 
+RdRp_read
+
+# The length is found for the local variable using the length() function. 
+length(RdRp_read)
+
+# The vector defined as the variable x is created to use as a loop for later use 
+x <- 1:length(RdRp_read)
+
+
+```
+### CHUNK C
+In this line of code, the msa() function is used to complete multiple sequence alignment. 
+
+```{r}
+# The msa() function is used to complete multiple sequence alignment and it is then printed by rewriting the variable
+myFirstAlignment <- msa(RdRp_unaligned)
+myFirstAlignment
+
+```
+
+### CHUNK D 
+
+In this chunk of code, the multiple sequence alignment is printed again. 
+
+```{r}
+# This shows the entire alignment split over multiple blocks of sub-sequences:
+
+print(myFirstAlignment, show="complete")
+```
+### CHUNK E 
+
+In this section of code, the function msaPrettyPrint() is used to print the alignment into a pdf. 
+
+```{r}
+# The msaPrettyPrint() function is particularly useful for pretty-printing multiple sequence and knitting it into a file or documents. 
+
+msaPrettyPrint(myFirstAlignment, y=c(164, 213), output="asis",
+showNames="none", showLogo="none", askForOverwrite=FALSE)
+
+
+```
+
+## Phylogenetic Tree
+
+Description of Analysis method: The phylogenetic tree is a branching diagram that represents the evolutionary relationships among organisms. However, since this project is based on RdRp, one of the target proteins in COVID-19, the tree will provide an analysis of the evolutionary relationships between the RdRp protein among 5 viruses similar to SARS-CoV-2.  I will be generating a phylogenetic tree of the RdRp protein in SARS-CoV-2 and 5 other viruses with the following CHUNKS below:
+
+
+### CHUNK A 
+
+This Chunk of code of uses Clustal Omega which is simply another algorithm with specific parameters for Multiple Sequence Alignment. More information about Clustal Omega can be found here: https://bioconductor.org/packages/devel/bioc/vignettes/msa/inst/doc/msa.pdf
+
+
+```{r}
+# Use Gonnet
+# Perform Multiple Sequence Alignment through the algorithm Clustal Omega
+
+myClustalOmegaAlignment <- msa(RdRp_unaligned, "ClustalOmega")
+
+# It is then printed below 
+
+myClustalOmegaAlignment
+
+
+
+```
+The reference used for the code above involving the Clustal Omega Algorithm can be found in the software manual here: https://bioconductor.org/packages/devel/bioc/vignettes/msa/inst/doc/msa.pdf. 
+
+
+### CHUNK B 
+
+The code below uses the packages 'seqinr' and 'ape' in order to generate a phylogenetic tree from the Multiple Sequence Alignment that was created above. 
+
+```{r}
+
+# Additional packages that need to be installed/loaded in order to make a Phylogenetic Tree
+
+library(seqinr)
+library(ape)
+
+# This is the first step of turning the alignment into a tree. The alignment is converted using the 'seqinr' package with the variable 'Aln2'. 
+
+myAln2 <- msaConvert(myClustalOmegaAlignment, type="seqinr::alignment")
+
+# A distance matrix is generated using the seqinr package with the variable 'd'.  
+
+d <- dist.alignment(myAln2, "identity")
+
+# This function computes a matrix of pairwise distances from the aligned sequences using similarity.
+
+as.matrix(d)
+
+# The tree is generated with the use of the ape package. The nj() function is used to allow neigbor-joining tree estimation. 
+
+myTree <- nj(d)
+
+# The tree is plotted with a title with the plot() function.
+
+plot(myTree, main="Phylogenetic Tree of SARS-CoV-2 and related Viruses")
+
+
+
+
+```
+
+### CHUNK C
+
+CHUNK C includes another example and way to make a phylogenetic Tree that is unrooted with specifications on font size and boldness.This just shows the variety of phylogenetic trees that can be created in R.
+
+```{r}
+# Here we create an un-rooted tree diagram with the use of 'u'. The lines are made thicker with 'edge.width.' The font is made smaller with 'cex.' 
+plot(myTree, "u",              
+     font = 2,         
+     edge.width = 2,  
+     cex = 0.5,
+     main = "RdRp Target protein of SARS-CoV-2 and Other Related Viruses")    
+```
+
+
+The code used above was referenced from the following website: https://rforbiochemists.blogspot.com/2016/12/drawing-simple-phylogenetic-tree-of.html. 
+
+# Method Two: Structural Bioinformatics and 3D Protein Measurements
+
+Database: Protein Data Bank 
+File Type: Pdb files are loaded directly from online and downloaded in R through the use of the package 'bio3d' and the function read.pdb()
+
+
+## Structural Bioinformatics
+
+Description of Method: Structural bioinformatics is a method that underscores the 3D structure of proteins and compares them to identify structural components and establish evolutionary relationships. In the follow section of code, I will be using structural bioinformatics to identify the residues of 6NUR from the protein bank database. 
+
+6NUR is a reference template of RdRp that was created from the amino acid residues similarities between SARS-Cov-2 and Sars-CoV that was obtained from the PBD Database. (Aftab et. al 2020) 
+
+The protein bank database 6NUR can be found here: https://www.rcsb.org/structure/6NUR. 
+
+In addition, more information on 6NUR and the research behind the creation of template can be found here: https://translational-medicine.biomedcentral.com/articles/10.1186/s12967-020-02439-0 
+
+
+### CHUNK A 
+
+In the following code the bio3d package is loaded in order to perform structural bioinformatics.
+
+```{r}
+# The 'bio3d' package is loaded in.
+
+library(bio3d)
+
+#The 6NUR file is read in from the protein bank database
+
+pdb <- read.pdb('6NUR')
+
+
+```
+### CHUNK B
+
+In the following code, we print pdb and identify some important attributes using the attributes function. 
+
+```{r}
+# Print pdb 
+
+pdb
+
+# Here we examine the contents of the file using the attributes() function
+
+attributes(pdb)
+```
+## 3D Protein Measurements
+
+Description of Analysis Method: In this method, we use a series of function from the 'bio3d' package that accesses a series of measurements that tells more information about the protein 6NUR. 
+
+
+These measurements may include: number of residues, and access to sheets and helices of the protein structure. 
+
+This section is broken up into two parts with multiple chunks. Part one identifies the measurement of only one structure 6NUR. Part two compares the structure of different RdRP target proteins in different viruses related to SARS-CoV-2.
+
+
+### PART ONE: CHUNK A
+
+In the following code, binding.site function is used to get more information on the residues. 
+
+```{r}
+# The function binding.site() identifies the residues in the structure
+ 
+
+pdbs <- binding.site(pdb)
+pdbs 
+```
+### PART ONE: CHUNK B
+
+In the following code, the index is used to generate the first 3 atoms and create a graph of the residues in first 3 lines of 6NUR.
+
+```{r}
+# A matrix is created of the first three lines
+pdb$atom[1:3, c("resno", "resid", "elety", "x", "y", "z")]
+
+# The indices are used to access the first three atoms
+ca.inds <- atom.select(pdb, "calpha")
+
+# The following code is used to plot the residues vs. the b-factor in the first three atoms of 6NUR
+resnos <- pdb$atom[ca.inds$atom, "resno"]
+bfacts <- pdb$atom[ca.inds$atom, "b"]
+plot.bio3d(resnos, bfacts, sse = pdb, ylab = "B-factor", xlab = "Residue", typ = "l")
+
+
+```
+
+### PART ONE: CHUNK C 
+
+In the following code, the sheet and helix components of 6NUR is extracted. 
+
+
+```{r}
+# The loop between strand 3 and helix 1 is extracted
+loop <- pdb$sheet$end[3]:pdb$helix$start[1]
+loop.inds <- atom.select(pdb, resno = loop, elety = "CA")
+
+# The p-loop that is created is extracted
+loop
+
+# The residue numbers and codons of the sheet and helix are accessed below 
+
+pdb$atom[loop.inds$atom, "resid"]
+```
+### PART TWO - CHUNK A 
+
+After analyzing the data in just 6NUR, I am now going to compare the data to 5 other RdRp target protein structures as I did before. However, these are a set of different viruses. I obtained the following structures from the PDB DATABASE:
+
+1. 6NUR - SARS-Coronavirus NSP12 bound to NSP7 and NSP8 co-factors
+2. 7B3D - Structure of elongating SARS-CoV-2 RNA-dependent RNA polymerase with AMP at position -4 
+3. 5I62 - Crystal structure of the insertion loop deletion mutant of RdRp of a human picorbirnavirus
+4. 6L4R - Crystal structure of Enterovirus D68 RdRp
+5. 3UQS - Crystal structures of murine norovirus RdRp
+6. 5K5M - Co-Crystal Structure of Dengue Virus Serotype 2 RdRP with Compound 27 
+
+For more information, the search can be found here: https://www.rcsb.org/search?request=%7B%22query%22%3A%7B%22type%22%3A%22group%22%2C%22nodes%22%3A%5B%7B%22type%22%3A%22group%22%2C%22nodes%22%3A%5B%7B%22type%22%3A%22group%22%2C%22nodes%22%3A%5B%7B%22type%22%3A%22terminal%22%2C%22service%22%3A%22full_text%22%2C%22parameters%22%3A%7B%22value%22%3A%22rdrp%22%7D%7D%5D%2C%22logical_operator%22%3A%22and%22%7D%5D%2C%22logical_operator%22%3A%22and%22%2C%22label%22%3A%22full_text%22%7D%5D%2C%22logical_operator%22%3A%22and%22%7D%2C%22return_type%22%3A%22entry%22%2C%22request_options%22%3A%7B%22paginate%22%3A%7B%22start%22%3A0%2C%22rows%22%3A25%7D%2C%22scoring_strategy%22%3A%22combined%22%2C%22sort%22%3A%5B%7B%22sort_by%22%3A%22score%22%2C%22direction%22%3A%22desc%22%7D%5D%7D%2C%22request_info%22%3A%7B%22query_id%22%3A%226998ec74d23e309b14f35f873229b031%22%7D%7D 
+
+
+```{r}
+# The files are downloaded and loaded in 
+
+ids <- c("6NUR_B", "7B3D_A", "5I62_A", "6L4R_A", "3UQS_A", "5K5M_A")
+raw.files <- get.pdb(ids)
+```
+
+### PART TWO - CHUNK B
+
+In the following code extract the files from the PDB and runs a mini multiple sequence alignment on the the split chains.
+
+In order for the function pdbaln() to be used muscle must be downloaded and installed. Muscle is multiple sequence alignment program that is necessary for the package 'bio3d' to be full functioning. It can be installed here: http://www.drive5.com/muscle/
+
+More information on MUSCLE can be found here: http://thegrantlab.org/bio3d/articles/online/install_vignette/Bio3D_install.html?q=musc#muscle
+
+```{r}
+# Here the files are extracted
+files <- pdbsplit(raw.files, ids)
+
+# Multiple sequence alignment is ran through the function pdbaln()
+BS <- pdbaln(files)
+
+```
+### PART TWO -  CHUNK C 
+In the following section of code the identity between all the sequences is found 
+
+```{r}
+# The function seqidentity() determines the similarity between the sequences based on identical residues 
+seqidentity(BS)
+```
+
+### PART TWO - CHUNK D 
+
+In this chunk of code, the root mean standard deviations are calculated between two structures and is organized linearly.
+
+```{r}
+# The root mean Standard Deviation is then calcualted here 
+rmsd(BS, fit =TRUE)
+```
+The source for the code above can be found here: http://rstudio-pubs-static.s3.amazonaws.com/10585_1a1fb580a417465cb00cb0238e13e59e.html
+
+# Analyzing the Results 
+
+As shown in the un-rooted phylogenetic tree. It can be implied that the RdRp SARS-CoV-2 protein sequence obtained from the NCBI database is closest to the RdRp of the bat coronavirus. The results from the phylogenetic tree are statistically reasonable as researchers have stated that SARs-CoV-2 originally came from bats, making the fact that the RdRp protein in both viruses are similar. This also provides reason for a evolutionary relation between the two target proteins in the separate viruses. A potential followup question in terms of the phylogenetic tree would be is the evolution of viruses between species possible and are there any mutations between the RdRp protein in Humans and/or bats that would affect the similarities between the viruses?
+
+In addition, seqidentity() function was used to identify identical residues in the protein structures. Our protein 6NUR had a higher identical residues in 7B3D which was SARS-CoV-2 and 5I62 which is the structure in human picorbirnavirus. This makes sense both of these viruses come from Humans. Pure SARS-CoV-2 has the highest identical residues (excluding 6NUR) is with 6L4R which is the structure in Enterovirus.
+
+The root mean standard deviation function tells us the average standard deviation between two proteins. The smaller the rmsd the bigger the similarity between the structures.On the other hand, both 6NUR and 7B3D has the highest similarity between sequences with the structure 6L4R with 20.793 and 21.026 respectively. However, the range for both 6NUR and 7B3D in root mean standard deviation is anywhere between 20 and 25 for the other viruses. Hence, the similarity between SARS-CoV-2 may not be as extensive as I may have predicted. Some follow-up questions include, why can the RdRp target protein have higher identical residues in one virus and yet still be lower in similarity? For example, 6NUR had a higher identical residue with 5I62, yet it was more similar to 6L4R with a lower root mean standard deviation. What is the correlation, if there is any, between sequence identity and root mean standard deviation?
+
+If I were to do this project again, I would include more viruses to compare the target protein RdRp to. Overall, my project gives a quick overview of the similarity of target proteins between viruses, and further research code can be done to truly determine whether there at least 30% similarity between the RdRp proteins. 
+
+
