@@ -29,3 +29,12 @@ Aftab, S.O., Ghouri, M.Z., Masood, M.U. et al. Analysis of SARS-CoV-2 RNA-depend
 Ghosh, D., Ghosh Dastidar, D., Roy, K. et al. Computational prediction of the molecular mechanism of statin group of drugs against SARS-CoV-2 pathogenesis. Sci Rep 12, 6241 (2022). https://doi.org/10.1038/s41598-022-09845-y
 
 Jiang, Yi et al. “RNA-dependent RNA polymerase: Structure, mechanism, and drug discovery for COVID-19.” Biochemical and biophysical research communications vol. 538 (2021): 47-53. doi:10.1016/j.bbrc.2020.08.116
+
+Lastly, the following files are needed to recapitulate the code:
+1. R Notebook
+2. fasta file: RdRp.fasta
+3. Following pdb files: 6NUR.pdb, 7B3D.pdb, 6L46.pdb, 5K5M.pdb, 5I62.pdb, and 3UQS.pdb
+
+All of the files have been uploaded and can be found above.
+
+
